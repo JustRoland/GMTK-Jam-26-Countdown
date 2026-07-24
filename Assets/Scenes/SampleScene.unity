@@ -721,10 +721,17 @@ PrefabInstance:
       propertyPath: team
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5915366860230628403, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
+      propertyPath: number
+      value: 1234
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2823990591304496930, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
 --- !u!1 &2009603839
 GameObject:
@@ -872,10 +879,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Agent
       objectReference: {fileID: 0}
+    - target: {fileID: 5915366860230628403, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
+      propertyPath: number
+      value: 4321
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2823990591304496930, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

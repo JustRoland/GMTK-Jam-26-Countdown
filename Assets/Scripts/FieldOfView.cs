@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
@@ -17,7 +18,9 @@ public class FieldOfView : MonoBehaviour
     [SerializeField] private LayerMask targetMask;
     [SerializeField] private LayerMask obstacleMask;
     
+    [HideInInspector]
     public List<Agent> visibleTargets = new();
+    private List<Agent> visibleTargetsOld= new();
 
     [SerializeField] private float meshResolution;
     [SerializeField] private MeshFilter meshFilter;
@@ -58,6 +61,8 @@ public class FieldOfView : MonoBehaviour
 
     private void FindVisibleTargets()
     {
+        visibleTargetsOld.Clear();
+        visibleTargetsOld.AddRange(visibleTargets);
         visibleTargets.Clear();
         Collider2D[] targetColliders = Physics2D.OverlapCircleAll(transform.position, viewRadius, targetMask);
 
@@ -72,7 +77,16 @@ public class FieldOfView : MonoBehaviour
             var distance = Vector2.Distance(transform.position, target.position);
             if (Physics2D.Raycast(transform.position, direction, distance, obstacleMask)) continue;
             if (!target.TryGetComponent(out Agent otherAgent)) continue;
-            if (_agent.ID != otherAgent.ID && _agent.Team != otherAgent.Team) visibleTargets.Add(otherAgent);
+            if (_agent.ID != otherAgent.ID && _agent.Team != otherAgent.Team)
+            {
+                otherAgent.isVisible.Value = true;
+                visibleTargets.Add(otherAgent);
+            }
+        }
+
+        foreach (var target in visibleTargetsOld.Where(target => !visibleTargets.Contains(target)))
+        {
+            target.isVisible.Value = false;
         }
     }
 

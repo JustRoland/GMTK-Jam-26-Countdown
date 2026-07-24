@@ -10,14 +10,13 @@ public class Player : MonoBehaviour
 
     [SerializeField] private Camera cam;
     [SerializeField] private Agent selectedAgent;
-    
+
     [SerializeField] private LayerMask layerMask;
 
     public int Team => team;
 
     private void Awake()
     {
-        
         _inputSystem = new InputSystem_Actions();
         _inputSystem.UI.Enable();
     }
@@ -31,8 +30,6 @@ public class Player : MonoBehaviour
     {
         if (_inputSystem.UI.Click.WasPressedThisFrame()) HandleClick();
         if (_inputSystem.UI.RightClick.WasPressedThisFrame()) MoveSelectedAgent();
-        
-
     }
 
     private void HandleClick()
@@ -44,16 +41,22 @@ public class Player : MonoBehaviour
     private void SelectAgent()
     {
         var ray = cam.ScreenPointToRay(_inputSystem.UI.Point.ReadValue<Vector2>());
-        
-        var hit = Physics2D.GetRayIntersection(ray, 100, layerMask:layerMask);
 
+        var hit = Physics2D.GetRayIntersection(ray, 100, layerMask: layerMask);
+
+        if (selectedAgent) selectedAgent.UpdateSelected(false);
+        
         if (hit)
         {
             var agent = hit.transform.GetComponent<Agent>();
+            Debug.Assert(agent, $"Agent Component is missing from {hit.transform.name}");
             selectedAgent = agent.Team == Team ? agent : selectedAgent;
+            selectedAgent?.UpdateSelected(true);
         }
-        else selectedAgent = null;
-
+        else
+        {
+            selectedAgent = null;
+        }
     }
 
     private void SetLookTargetAgent()
