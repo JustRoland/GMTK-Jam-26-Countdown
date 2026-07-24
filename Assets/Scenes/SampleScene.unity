@@ -188,7 +188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4dbdfdcaaa10104396c8f6588237407, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Agent
-  agentID: 0
+  agentID: 1
 --- !u!58 &349974361
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -269,8 +269,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb8bd8f21736ae04bab993eee85352f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  playerID: 0
-  _selectedAgent: {fileID: 0}
+  playerID: 1
+  cam: {fileID: 519420031}
+  selectedAgent: {fileID: 0}
   layerMask:
     serializedVersion: 2
     m_Bits: 256
@@ -960,7 +961,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4dbdfdcaaa10104396c8f6588237407, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Agent
-  agentID: 0
+  agentID: 1
 --- !u!195 &1581960698
 NavMeshAgent:
   m_ObjectHideFlags: 0
