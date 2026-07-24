@@ -3,18 +3,18 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
-
 public class Agent : MonoBehaviour
 {
     private static int _id;
     public readonly int ID = _id++;
     public int number;
 
-    [SerializeField] private int team;
+    [SerializeField] private Team team;
     [SerializeField] private TextMeshPro numberText;
     [SerializeField] private GameObject fovVisual;
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Transform lookTargetTransform;
+    public Transform rotationPivotTransform;
 
     private NavMeshAgent _agent;
 
@@ -22,7 +22,7 @@ public class Agent : MonoBehaviour
 
 
     public ObservableProperty<bool> isVisible = new(false);
-    public int Team => team;
+    public Team Team => team;
 
     private void Awake()
     {
@@ -31,7 +31,7 @@ public class Agent : MonoBehaviour
         _agent.updateUpAxis = false;
         
         numberText.text = number.ToString();
-        numberText.gameObject.SetActive(false);
+        if (Team != Team.Player1) numberText.gameObject.SetActive(false);
         fovVisual.SetActive(false);
         lineRenderer.gameObject.SetActive(false);
         lookTargetTransform.gameObject.SetActive(false);
@@ -47,6 +47,7 @@ public class Agent : MonoBehaviour
         isVisible.OnChanged.RemoveListener(UpdateVisibility);
     }
 
+    
     private void Update()
     {
         UpdateRotation();
@@ -57,10 +58,10 @@ public class Agent : MonoBehaviour
     {
         if (_lookTarget == Vector3.zero) return;
 
-        var trgt = transform.InverseTransformPoint(_lookTarget);
+        var trgt = rotationPivotTransform.InverseTransformPoint(_lookTarget);
         var angle = Mathf.Atan2(trgt.y, trgt.x) * Mathf.Rad2Deg - 90;
 
-        transform.Rotate(0, 0, angle);
+        rotationPivotTransform.Rotate(0, 0, angle);
     }
 
     private void UpdateLookTarget()
@@ -72,13 +73,13 @@ public class Agent : MonoBehaviour
         lineRenderer.SetPosition(1, lookTargetTransform.localPosition);
     }
 
-    public void SetAgentDestination(int playerTeam, Vector3 destination)
+    public void SetAgentDestination(Team playerTeam, Vector3 destination)
     {
         if (playerTeam != Team) return;
         _agent.SetDestination(destination);
     }
 
-    public void SetAgentLookTarget(int playerTeam, Vector3 target)
+    public void SetAgentLookTarget(Team playerTeam, Vector3 target)
     {
         if (playerTeam != Team) return;
         _lookTarget = target;
@@ -86,13 +87,32 @@ public class Agent : MonoBehaviour
 
     private void UpdateVisibility(bool visible)
     {
-        numberText.gameObject.SetActive(visible);
+        switch (Team)
+        {
+            case Team.Player2:
+                numberText.gameObject.SetActive(visible);
+                break;
+            case Team.Player1:
+                numberText.color = visible ? Color.red : Color.white;
+                break;
+            case Team.None:
+                print($"No Team assigned to {name}");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 
-    public void UpdateSelected(bool isSelected)
+    public void SelectedVisuals(bool isSelected)
     {
         fovVisual.SetActive(isSelected);
         lineRenderer.gameObject.SetActive(isSelected);
         lookTargetTransform.gameObject.SetActive(isSelected);
     }
+
+    public void HoverVisuals(bool isHovered)
+    {
+        fovVisual.SetActive(isHovered);
+    }
+    
 }

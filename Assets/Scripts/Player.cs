@@ -1,11 +1,18 @@
-using System;
 using UnityEngine;
-using System.Linq;
-using UnityEngine.Serialization;
+using UnityEngine.InputSystem;
+
+public enum Team
+{
+    None,
+    Player1,
+    Player2,
+}
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private int team;
+    public Team Team => team;
+    [SerializeField] private Team team;
+    
     private InputSystem_Actions _inputSystem;
 
     [SerializeField] private Camera cam;
@@ -13,7 +20,9 @@ public class Player : MonoBehaviour
 
     [SerializeField] private LayerMask layerMask;
 
-    public int Team => team;
+    private Agent _hoverAgentCache;
+    
+    //TODO: Hide mechanic
 
     private void Awake()
     {
@@ -28,14 +37,33 @@ public class Player : MonoBehaviour
 
     private void HandleInput()
     {
-        if (_inputSystem.UI.Click.WasPressedThisFrame()) HandleClick();
+        if (_inputSystem.UI.Click.WasPerformedThisFrame()) SelectAgent();
         if (_inputSystem.UI.RightClick.WasPressedThisFrame()) MoveSelectedAgent();
+        if (_inputSystem.UI.Hold.IsPressed() && _inputSystem.UI.Hold.phase == InputActionPhase.Performed) SetAgentLookTarget();
+        
+        Hover();
     }
 
-    private void HandleClick()
+    private void Hover()
     {
-        if (!selectedAgent) SelectAgent();
-        else SetLookTargetAgent();
+        var ray = cam.ScreenPointToRay(_inputSystem.UI.Point.ReadValue<Vector2>());
+
+        var hit = Physics2D.GetRayIntersection(ray, 100, layerMask: layerMask);
+
+
+        if (hit && hit.transform.TryGetComponent(out Agent agent))
+        {
+            if (agent == selectedAgent) return;
+            agent.HoverVisuals(true);
+            _hoverAgentCache = agent;
+        }
+        else
+        {
+            if (_hoverAgentCache == selectedAgent) return;
+            _hoverAgentCache?.HoverVisuals(false);
+        }
+            
+        
     }
 
     private void SelectAgent()
@@ -44,14 +72,12 @@ public class Player : MonoBehaviour
 
         var hit = Physics2D.GetRayIntersection(ray, 100, layerMask: layerMask);
 
-        if (selectedAgent) selectedAgent.UpdateSelected(false);
+        if (selectedAgent) selectedAgent.SelectedVisuals(false);
         
-        if (hit)
+        if (hit && hit.transform.TryGetComponent(out Agent agent))
         {
-            var agent = hit.transform.GetComponent<Agent>();
-            Debug.Assert(agent, $"Agent Component is missing from {hit.transform.name}");
             selectedAgent = agent.Team == Team ? agent : selectedAgent;
-            selectedAgent?.UpdateSelected(true);
+            selectedAgent?.SelectedVisuals(true);
         }
         else
         {
@@ -59,9 +85,9 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void SetLookTargetAgent()
+    private void SetAgentLookTarget()
     {
-        selectedAgent.SetAgentLookTarget(Team, GetWorldPointFromScreenPoint());
+        selectedAgent?.SetAgentLookTarget(Team, GetWorldPointFromScreenPoint());
     }
 
     private void MoveSelectedAgent()

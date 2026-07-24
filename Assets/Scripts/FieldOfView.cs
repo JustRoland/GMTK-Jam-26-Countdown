@@ -4,40 +4,40 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UnityEngine.Serialization;
 
 public class FieldOfView : MonoBehaviour
 {
-    private Agent _agent;
-    
+    [SerializeField] private Agent agent;
+
     public float viewRadius;
-    [Range(0, 360)]
-    public float viewAngle = 90f;
+    [Range(0, 360)] public float viewAngle = 90f;
 
     [SerializeField] private float searchDelay = .2f;
-    
+
     [SerializeField] private LayerMask targetMask;
     [SerializeField] private LayerMask obstacleMask;
-    
-    [HideInInspector]
-    public List<Agent> visibleTargets = new();
-    private List<Agent> visibleTargetsOld= new();
+
+    /// <summary>
+    /// Refers to Agents whose number is visible.
+    /// </summary>
+    [HideInInspector] public List<Agent> visibleTargets = new();
+
+    private List<Agent> visibleTargetsOld = new();
 
     [SerializeField] private float meshResolution;
     [SerializeField] private MeshFilter meshFilter;
     private Mesh _mesh;
-    
+
     private CancellationTokenSource _cancellationTokenSource;
 
     private void Awake()
     {
-        _agent = GetComponent<Agent>();
         _cancellationTokenSource = new CancellationTokenSource();
-        
+
         _mesh = new Mesh();
         _mesh.name = "FieldOfView";
         meshFilter.mesh = _mesh;
-        
-        
     }
 
     private void Start()
@@ -71,14 +71,16 @@ public class FieldOfView : MonoBehaviour
         {
             var target = targetColliders[i].transform;
             var direction = (target.position - transform.position).normalized;
-            var angle = Vector3.Angle(transform.up, direction);
-            
+            var angle = Vector3.Angle(agent.rotationPivotTransform.up, direction);
+
             if (!(angle < viewAngle / 2)) continue;
             var distance = Vector2.Distance(transform.position, target.position);
             if (Physics2D.Raycast(transform.position, direction, distance, obstacleMask)) continue;
             if (!target.TryGetComponent(out Agent otherAgent)) continue;
-            if (_agent.ID != otherAgent.ID && _agent.Team != otherAgent.Team)
+            if (agent.ID != otherAgent.ID && agent.Team != otherAgent.Team)
             {
+                var ang = Vector3.Angle(agent.rotationPivotTransform.up, otherAgent.rotationPivotTransform.up);
+                if (ang < 180 - viewAngle / 2) continue;
                 otherAgent.isVisible.Value = true;
                 visibleTargets.Add(otherAgent);
             }
@@ -96,21 +98,20 @@ public class FieldOfView : MonoBehaviour
         var rayAngleSize = viewAngle / rayCount;
         List<Vector3> viewPoints = new();
         for (var i = 0; i <= rayCount; i++)
-        { 
-            var angle = transform.eulerAngles.z - viewAngle / 2 + rayAngleSize * i;
+        {
+            var angle = agent.rotationPivotTransform.eulerAngles.z - viewAngle / 2 + rayAngleSize * i;
             ViewCastInfo newViewCast = ViewCast(-angle);
             viewPoints.Add(newViewCast.point);
         }
 
         int vertexCount = viewPoints.Count + 1;
-        print(vertexCount);
         Vector3[] vertices = new Vector3[vertexCount];
         int[] triangles = new int[(vertexCount - 2) * 3];
-        
+
         vertices[0] = Vector3.zero;
         for (int i = 0; i < vertexCount - 1; i++)
         {
-            vertices[i + 1] = transform.InverseTransformPoint(viewPoints[i]);
+            vertices[i + 1] = agent.rotationPivotTransform.InverseTransformPoint(viewPoints[i]);
             if (i < vertexCount - 2)
             {
                 triangles[i * 3] = 0;
@@ -118,18 +119,17 @@ public class FieldOfView : MonoBehaviour
                 triangles[i * 3 + 2] = i + 2;
             }
         }
-        
+
         _mesh.Clear();
         _mesh.vertices = vertices;
         _mesh.triangles = triangles;
         _mesh.RecalculateNormals();
-
     }
 
     public Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
     {
-        if (!angleIsGlobal) angleInDegrees -= transform.eulerAngles.z;
-        return new Vector3(Mathf.Sin(angleInDegrees*Mathf.Deg2Rad), Mathf.Cos(angleInDegrees*Mathf.Deg2Rad), 0);
+        if (!angleIsGlobal) angleInDegrees -= agent.rotationPivotTransform.eulerAngles.z;
+        return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), Mathf.Cos(angleInDegrees * Mathf.Deg2Rad), 0);
     }
 
     private ViewCastInfo ViewCast(float globalAngle)
@@ -138,7 +138,9 @@ public class FieldOfView : MonoBehaviour
 
 
         var hit = Physics2D.Raycast(transform.position, direction, viewRadius, obstacleMask);
-        return hit ? new ViewCastInfo(true, hit.point, hit.distance, globalAngle) : new ViewCastInfo(false, transform.position + direction * viewRadius, viewRadius, globalAngle);
+        return hit
+            ? new ViewCastInfo(true, hit.point, hit.distance, globalAngle)
+            : new ViewCastInfo(false, transform.position + direction * viewRadius, viewRadius, globalAngle);
     }
 
     public struct ViewCastInfo
@@ -156,5 +158,4 @@ public class FieldOfView : MonoBehaviour
             angle = _angle;
         }
     }
-
 }
