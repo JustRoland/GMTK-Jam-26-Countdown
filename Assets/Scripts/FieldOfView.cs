@@ -1,0 +1,146 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using UnityEngine;
+using Cysharp.Threading.Tasks;
+
+public class FieldOfView : MonoBehaviour
+{
+    private Agent _agent;
+    
+    public float viewRadius;
+    [Range(0, 360)]
+    public float viewAngle = 90f;
+
+    [SerializeField] private float searchDelay = .2f;
+    
+    [SerializeField] private LayerMask targetMask;
+    [SerializeField] private LayerMask obstacleMask;
+    
+    public List<Agent> visibleTargets = new();
+
+    [SerializeField] private float meshResolution;
+    [SerializeField] private MeshFilter meshFilter;
+    private Mesh _mesh;
+    
+    private CancellationTokenSource _cancellationTokenSource;
+
+    private void Awake()
+    {
+        _agent = GetComponent<Agent>();
+        _cancellationTokenSource = new CancellationTokenSource();
+        
+        _mesh = new Mesh();
+        _mesh.name = "FieldOfView";
+        meshFilter.mesh = _mesh;
+        
+        
+    }
+
+    private void Start()
+    {
+        FindTargetsWithDelay(searchDelay, _cancellationTokenSource.Token).Forget();
+    }
+
+    private void LateUpdate()
+    {
+        DrawFieldOfView();
+    }
+
+    private async UniTask FindTargetsWithDelay(float delay, CancellationToken cancellationToken)
+    {
+        while (cancellationToken.IsCancellationRequested == false)
+        {
+            await UniTask.WaitForSeconds(delay, cancellationToken: cancellationToken);
+            FindVisibleTargets();
+        }
+    }
+
+    private void FindVisibleTargets()
+    {
+        visibleTargets.Clear();
+        Collider2D[] targetColliders = Physics2D.OverlapCircleAll(transform.position, viewRadius, targetMask);
+
+
+        for (int i = 0; i < targetColliders.Length; i++)
+        {
+            var target = targetColliders[i].transform;
+            var direction = (target.position - transform.position).normalized;
+            var angle = Vector3.Angle(transform.up, direction);
+            
+            if (!(angle < viewAngle / 2)) continue;
+            var distance = Vector2.Distance(transform.position, target.position);
+            if (Physics2D.Raycast(transform.position, direction, distance, obstacleMask)) continue;
+            if (!target.TryGetComponent(out Agent otherAgent)) continue;
+            if (_agent.ID != otherAgent.ID && _agent.Team != otherAgent.Team) visibleTargets.Add(otherAgent);
+        }
+    }
+
+    private void DrawFieldOfView()
+    {
+        var rayCount = Mathf.RoundToInt(meshResolution * viewAngle);
+        var rayAngleSize = viewAngle / rayCount;
+        List<Vector3> viewPoints = new();
+        for (var i = 0; i <= rayCount; i++)
+        { 
+            var angle = transform.eulerAngles.z - viewAngle / 2 + rayAngleSize * i;
+            ViewCastInfo newViewCast = ViewCast(-angle);
+            viewPoints.Add(newViewCast.point);
+        }
+
+        int vertexCount = viewPoints.Count + 1;
+        print(vertexCount);
+        Vector3[] vertices = new Vector3[vertexCount];
+        int[] triangles = new int[(vertexCount - 2) * 3];
+        
+        vertices[0] = Vector3.zero;
+        for (int i = 0; i < vertexCount - 1; i++)
+        {
+            vertices[i + 1] = transform.InverseTransformPoint(viewPoints[i]);
+            if (i < vertexCount - 2)
+            {
+                triangles[i * 3] = 0;
+                triangles[i * 3 + 1] = i + 1;
+                triangles[i * 3 + 2] = i + 2;
+            }
+        }
+        
+        _mesh.Clear();
+        _mesh.vertices = vertices;
+        _mesh.triangles = triangles;
+        _mesh.RecalculateNormals();
+
+    }
+
+    public Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
+    {
+        if (!angleIsGlobal) angleInDegrees -= transform.eulerAngles.z;
+        return new Vector3(Mathf.Sin(angleInDegrees*Mathf.Deg2Rad), Mathf.Cos(angleInDegrees*Mathf.Deg2Rad), 0);
+    }
+
+    private ViewCastInfo ViewCast(float globalAngle)
+    {
+        Vector3 direction = DirFromAngle(globalAngle, true);
+
+
+        var hit = Physics2D.Raycast(transform.position, direction, viewRadius, obstacleMask);
+        return hit ? new ViewCastInfo(true, hit.point, hit.distance, globalAngle) : new ViewCastInfo(false, transform.position + direction * viewRadius, viewRadius, globalAngle);
+    }
+
+    public struct ViewCastInfo
+    {
+        public bool hit;
+        public Vector3 point;
+        public float distance;
+        public float angle;
+
+        public ViewCastInfo(bool _hit, Vector3 _point, float _distance, float _angle)
+        {
+            hit = _hit;
+            point = _point;
+            distance = _distance;
+            angle = _angle;
+        }
+    }
+
+}

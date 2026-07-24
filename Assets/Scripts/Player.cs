@@ -5,14 +5,15 @@ using UnityEngine.Serialization;
 
 public class Player : MonoBehaviour
 {
-    public int playerID;
+    [SerializeField] private int team;
     private InputSystem_Actions _inputSystem;
 
     [SerializeField] private Camera cam;
     [SerializeField] private Agent selectedAgent;
     
-    [SerializeField] private LayerMask layerMask; 
+    [SerializeField] private LayerMask layerMask;
 
+    public int Team => team;
 
     private void Awake()
     {
@@ -42,16 +43,14 @@ public class Player : MonoBehaviour
 
     private void SelectAgent()
     {
-        print("Click");
         var ray = cam.ScreenPointToRay(_inputSystem.UI.Point.ReadValue<Vector2>());
-        print($"{ray.origin}, {ray.direction}");
         
         var hit = Physics2D.GetRayIntersection(ray, 100, layerMask:layerMask);
 
         if (hit)
         {
             var agent = hit.transform.GetComponent<Agent>();
-            selectedAgent = agent.agentID == playerID ? agent : selectedAgent;
+            selectedAgent = agent.Team == Team ? agent : selectedAgent;
         }
         else selectedAgent = null;
 
@@ -59,13 +58,13 @@ public class Player : MonoBehaviour
 
     private void SetLookTargetAgent()
     {
-        selectedAgent.SetAgentLookTarget(playerID, GetWorldPointFromScreenPoint());
+        selectedAgent.SetAgentLookTarget(Team, GetWorldPointFromScreenPoint());
     }
 
     private void MoveSelectedAgent()
     {
         if (!selectedAgent) return;
-        selectedAgent.SetAgentDestination(playerID, GetWorldPointFromScreenPoint());
+        selectedAgent.SetAgentDestination(Team, GetWorldPointFromScreenPoint());
     }
 
 

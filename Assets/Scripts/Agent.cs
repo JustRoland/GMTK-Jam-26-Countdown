@@ -1,13 +1,19 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 public class Agent : MonoBehaviour
 {
-    public int agentID;
+    private static int _id;
+    public readonly int ID = _id++; 
+    
+    [SerializeField] private int team;
     private NavMeshAgent _agent;
 
     private Vector3 _lookTarget;
+
+    public int Team => team;
 
     private void Awake()
     {
@@ -32,15 +38,15 @@ public class Agent : MonoBehaviour
         transform.Rotate(0, 0, angle);
     }
 
-    public void SetAgentDestination(int playerID, Vector3 destination)
+    public void SetAgentDestination(int playerTeam, Vector3 destination)
     {
-        if (playerID != agentID) return;
+        if (playerTeam != Team) return;
         _agent.SetDestination(destination);
     }
 
-    public void SetAgentLookTarget(int playerID, Vector3 target)
+    public void SetAgentLookTarget(int playerTeam, Vector3 target)
     {
-        if (playerID != agentID) return;
+        if (playerTeam != Team) return;
         _lookTarget = target;
     }
 
