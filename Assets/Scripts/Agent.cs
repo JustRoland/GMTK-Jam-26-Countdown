@@ -21,10 +21,11 @@ public class Agent : MonoBehaviour
     private Vector3 _lookTarget;
 
 
-    public ObservableProperty<bool> isVisible = new(false);
+    public readonly ObservableProperty<bool> IsVisible = new(false);
+    public bool Arrived { get; private set; }
     public Team Team => team;
 
-    private void Awake()
+    public void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
         _agent.updateRotation = false;
@@ -39,12 +40,12 @@ public class Agent : MonoBehaviour
 
     private void OnEnable()
     {
-        isVisible.OnChanged.AddListener(UpdateVisibility);
+        IsVisible.OnChanged.AddListener(UpdateVisibility);
     }
 
     private void OnDisable()
     {
-        isVisible.OnChanged.RemoveListener(UpdateVisibility);
+        IsVisible.OnChanged.RemoveListener(UpdateVisibility);
     }
 
     
@@ -52,6 +53,7 @@ public class Agent : MonoBehaviour
     {
         UpdateRotation();
         UpdateLookTarget();
+        Arrived = _agent.pathStatus == NavMeshPathStatus.PathComplete && _agent.remainingDistance < 0.1f;
     }
 
     private void UpdateRotation()
@@ -71,6 +73,12 @@ public class Agent : MonoBehaviour
         lookTargetTransform.position = _lookTarget;
         lineRenderer.SetPosition(0, Vector3.zero);
         lineRenderer.SetPosition(1, lookTargetTransform.localPosition);
+    }
+
+    public void Eliminate(Team eliminatedBy)
+    {
+        if (team == eliminatedBy) return;
+        gameObject.SetActive(false);
     }
 
     public void SetAgentDestination(Team playerTeam, Vector3 destination)

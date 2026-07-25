@@ -12,7 +12,7 @@ public class Player : MonoBehaviour
 {
     public Team Team => team;
     [SerializeField] private Team team;
-    
+
     private InputSystem_Actions _inputSystem;
 
     [SerializeField] private Camera cam;
@@ -21,10 +21,10 @@ public class Player : MonoBehaviour
     [SerializeField] private LayerMask layerMask;
 
     private Agent _hoverAgentCache;
-    
+
     //TODO: Hide mechanic
 
-    private void Awake()
+    public void Awake()
     {
         _inputSystem = new InputSystem_Actions();
         _inputSystem.UI.Enable();
@@ -39,8 +39,9 @@ public class Player : MonoBehaviour
     {
         if (_inputSystem.UI.Click.WasPerformedThisFrame()) SelectAgent();
         if (_inputSystem.UI.RightClick.WasPressedThisFrame()) MoveSelectedAgent();
-        if (_inputSystem.UI.Hold.IsPressed() && _inputSystem.UI.Hold.phase == InputActionPhase.Performed) SetAgentLookTarget();
-        
+        if (_inputSystem.UI.Hold.IsPressed() && _inputSystem.UI.Hold.phase == InputActionPhase.Performed)
+            SetAgentLookTarget();
+
         Hover();
     }
 
@@ -62,8 +63,6 @@ public class Player : MonoBehaviour
             if (_hoverAgentCache == selectedAgent) return;
             _hoverAgentCache?.HoverVisuals(false);
         }
-            
-        
     }
 
     private void SelectAgent()
@@ -73,15 +72,21 @@ public class Player : MonoBehaviour
         var hit = Physics2D.GetRayIntersection(ray, 100, layerMask: layerMask);
 
         if (selectedAgent) selectedAgent.SelectedVisuals(false);
-        
-        if (hit && hit.transform.TryGetComponent(out Agent agent))
-        {
-            selectedAgent = agent.Team == Team ? agent : selectedAgent;
-            selectedAgent?.SelectedVisuals(true);
-        }
-        else
+
+        if (!hit || !hit.transform.TryGetComponent(out Agent agent))
         {
             selectedAgent = null;
+            return;
+        }
+
+        if (agent.Team == Team)
+        {
+            selectedAgent = agent;
+            selectedAgent.SelectedVisuals(true);
+        }
+        else if (agent.IsVisible.Value)
+        {
+            agent.Eliminate(Team);
         }
     }
 

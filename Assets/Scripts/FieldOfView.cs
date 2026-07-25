@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 public class FieldOfView : MonoBehaviour
@@ -23,26 +24,39 @@ public class FieldOfView : MonoBehaviour
     /// </summary>
     [HideInInspector] public List<Agent> visibleTargets = new();
 
-    private List<Agent> visibleTargetsOld = new();
+    private List<Agent> _visibleTargetsOld = new();
+
+    public UnityEvent<Agent, bool> AgentInViewEvent = new();
 
     [SerializeField] private float meshResolution;
     [SerializeField] private MeshFilter meshFilter;
     private Mesh _mesh;
 
-    private CancellationTokenSource _cancellationTokenSource;
+    private CancellationTokenSource _targetingToken;
 
     private void Awake()
     {
-        _cancellationTokenSource = new CancellationTokenSource();
-
         _mesh = new Mesh();
         _mesh.name = "FieldOfView";
         meshFilter.mesh = _mesh;
     }
 
+    private void OnEnable()
+    {
+        _targetingToken = new CancellationTokenSource();
+    }
+
+    private void OnDisable()
+    {
+        _targetingToken.Cancel();
+        _targetingToken.Dispose();
+        visibleTargets.ForEach(t => t.IsVisible.Value = false);
+        AgentInViewEvent.Invoke(agent, false);
+    }
+
     private void Start()
     {
-        FindTargetsWithDelay(searchDelay, _cancellationTokenSource.Token).Forget();
+        FindTargetsWithDelay(searchDelay, _targetingToken.Token).Forget();
     }
 
     private void LateUpdate()
@@ -61,8 +75,8 @@ public class FieldOfView : MonoBehaviour
 
     private void FindVisibleTargets()
     {
-        visibleTargetsOld.Clear();
-        visibleTargetsOld.AddRange(visibleTargets);
+        _visibleTargetsOld.Clear();
+        _visibleTargetsOld.AddRange(visibleTargets);
         visibleTargets.Clear();
         Collider2D[] targetColliders = Physics2D.OverlapCircleAll(transform.position, viewRadius, targetMask);
 
@@ -81,14 +95,16 @@ public class FieldOfView : MonoBehaviour
             {
                 var ang = Vector3.Angle(agent.rotationPivotTransform.up, otherAgent.rotationPivotTransform.up);
                 if (ang < 180 - viewAngle / 2) continue;
-                otherAgent.isVisible.Value = true;
+                otherAgent.IsVisible.Value = true;
+                AgentInViewEvent.Invoke(otherAgent, true);
                 visibleTargets.Add(otherAgent);
             }
         }
 
-        foreach (var target in visibleTargetsOld.Where(target => !visibleTargets.Contains(target)))
+        foreach (var target in _visibleTargetsOld.Where(target => !visibleTargets.Contains(target)))
         {
-            target.isVisible.Value = false;
+            target.IsVisible.Value = false;
+            AgentInViewEvent.Invoke(target, false);
         }
     }
 
