@@ -1,16 +1,18 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public enum Team
 {
     None,
-    Player1,
-    Player2,
+    Blue,
+    Red,
 }
 
 public class Player : MonoBehaviour
 {
     public Team Team => team;
+    [Required]
     [SerializeField] private Team team;
 
     private InputSystem_Actions _inputSystem;

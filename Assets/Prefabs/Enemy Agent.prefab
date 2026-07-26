@@ -69,8 +69,16 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5915366860230628403, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
+      propertyPath: myTeam
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5915366860230628403, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
       propertyPath: number
       value: 1234
+      objectReference: {fileID: 0}
+    - target: {fileID: 5915366860230628403, guid: e8dca4d590852f84294140c8bc87c63f, type: 3}
+      propertyPath: enemyTeam
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -98,6 +106,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   team: 2
-  minWanderDelay: 5
-  maxWanderDelay: 7
-  reactionTime: 2
+  otherTeam: 1
+  minWanderDelay: 3
+  maxWanderDelay: 8
+  reactionTime: 1.5

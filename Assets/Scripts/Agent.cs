@@ -1,7 +1,9 @@
 using System;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 public class Agent : MonoBehaviour
 {
@@ -9,30 +11,31 @@ public class Agent : MonoBehaviour
     public readonly int ID = _id++;
     public int number;
 
-    [SerializeField] private Team team;
+    public Team myTeam;
+    public Team enemyTeam;
     [SerializeField] private TextMeshPro numberText;
     [SerializeField] private GameObject fovVisual;
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Transform lookTargetTransform;
     public Transform rotationPivotTransform;
 
-    private NavMeshAgent _agent;
+    private NavMeshAgent _navAgent;
 
     private Vector3 _lookTarget;
 
 
     public readonly ObservableProperty<bool> IsVisible = new(false);
     public bool Arrived { get; private set; }
-    public Team Team => team;
+    public Team Team => myTeam;
 
     public void Awake()
     {
-        _agent = GetComponent<NavMeshAgent>();
-        _agent.updateRotation = false;
-        _agent.updateUpAxis = false;
-        
+        _navAgent = GetComponent<NavMeshAgent>();
+        _navAgent.updateRotation = false;
+        _navAgent.updateUpAxis = false;
+
         numberText.text = number.ToString();
-        if (Team != Team.Player1) numberText.gameObject.SetActive(false);
+        if (Team != Team.Blue) numberText.gameObject.SetActive(false);
         fovVisual.SetActive(false);
         lineRenderer.gameObject.SetActive(false);
         lookTargetTransform.gameObject.SetActive(false);
@@ -45,15 +48,26 @@ public class Agent : MonoBehaviour
 
     private void OnDisable()
     {
+        if (LocationMarkerManager.Instance != null) LocationMarkerManager.Instance.ReturnFlag(this);
         IsVisible.OnChanged.RemoveListener(UpdateVisibility);
     }
 
-    
+    private void Start()
+    {
+        if (LocationMarkerManager.Instance == null) return;
+        SetAgentLookTarget(myTeam,
+            transform.position +
+            new Vector3(
+                    LocationMarkerManager.Instance.RequestFlag(enemyTeam).Transform.position.x - transform.position.x, 0, 0)
+                .normalized * 3);
+    }
+
+
     private void Update()
     {
         UpdateRotation();
         UpdateLookTarget();
-        Arrived = _agent.pathStatus == NavMeshPathStatus.PathComplete && _agent.remainingDistance < 0.1f;
+        Arrived = _navAgent.pathStatus == NavMeshPathStatus.PathComplete && _navAgent.remainingDistance < 0.1f;
     }
 
     private void UpdateRotation()
@@ -77,14 +91,14 @@ public class Agent : MonoBehaviour
 
     public void Eliminate(Team eliminatedBy)
     {
-        if (team == eliminatedBy) return;
+        if (myTeam == eliminatedBy) return;
         gameObject.SetActive(false);
     }
 
     public void SetAgentDestination(Team playerTeam, Vector3 destination)
     {
         if (playerTeam != Team) return;
-        _agent.SetDestination(destination);
+        _navAgent.SetDestination(destination);
     }
 
     public void SetAgentLookTarget(Team playerTeam, Vector3 target)
@@ -97,10 +111,10 @@ public class Agent : MonoBehaviour
     {
         switch (Team)
         {
-            case Team.Player2:
+            case Team.Red:
                 numberText.gameObject.SetActive(visible);
                 break;
-            case Team.Player1:
+            case Team.Blue:
                 numberText.color = visible ? Color.red : Color.white;
                 break;
             case Team.None:
@@ -122,5 +136,4 @@ public class Agent : MonoBehaviour
     {
         fovVisual.SetActive(isHovered);
     }
-    
 }

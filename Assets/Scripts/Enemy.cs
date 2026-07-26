@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
@@ -10,8 +11,7 @@ public class Enemy : MonoBehaviour
     private CancellationTokenSource _wanderToken;
     private CancellationTokenSource _reactionToken;
     private Agent _otherAgentCache;
-
-    [SerializeField] private Team team;
+    
     [SerializeField] private float minWanderDelay;
     [SerializeField] private float maxWanderDelay;
     [SerializeField] private float reactionTime;
@@ -32,10 +32,6 @@ public class Enemy : MonoBehaviour
     {
         _wanderToken = new CancellationTokenSource();
         if (LocationMarkerManager.Instance == null) return;
-        _agent.SetAgentLookTarget(team,
-            transform.position +
-            new Vector3(transform.position.x - LocationMarkerManager.Instance.RequestFlag(Team.Player2).Transform.position.x, 0, 0)
-                .normalized * 3);
         Wander(_wanderToken.Token).Forget();
         _fov.AgentInViewEvent.AddListener(OnAgentInView);
     }
@@ -55,20 +51,27 @@ public class Enemy : MonoBehaviour
         {
             //Find location to move to
             var marker = LocationMarkerManager.Instance.RequestLocationMarker();
-            _agent.SetAgentDestination(team, marker.position);
-            _agent.SetAgentLookTarget(team, marker.position);
+            if (marker)
+            {
+                //Move to location
+                _agent.SetAgentDestination(_agent.Team, marker.position);
+                _agent.SetAgentLookTarget(_agent.Team, marker.position);
+                await UniTask.WaitUntil(() => _agent.Arrived, cancellationToken: cancellationToken);
 
-            //Move to location
-            await UniTask.WaitUntil(() => _agent.Arrived, cancellationToken: cancellationToken);
-            _agent.SetAgentLookTarget(team,
-                transform.position +
-                new Vector3(LocationMarkerManager.Instance.RequestFlag(Team.Player2).Transform.position.x - transform.position.x, 0, 0)
-                    .normalized * 3);
+            }
 
             //Wait for next wander
+            _agent.SetAgentLookTarget(_agent.Team,
+                transform.position +
+                new Vector3(
+                        LocationMarkerManager.Instance.RequestFlag(_agent.enemyTeam).Transform.position.x -
+                        transform.position.x, 0, 0)
+                    .normalized * 3);
             var randomWander = UnityEngine.Random.Range(minWanderDelay, maxWanderDelay);
             await UniTask.WaitForSeconds(randomWander, cancellationToken: cancellationToken);
-            LocationMarkerManager.Instance.ReturnLocationMarker(marker);
+            if (marker) LocationMarkerManager.Instance.ReturnLocationMarker(marker); 
+            
+            //NOTE: Possible marker overlap if the marker gets returned, but no new marker is found. 
         }
     }
 
@@ -89,10 +92,10 @@ public class Enemy : MonoBehaviour
             _otherAgentCache = null;
         }
     }
-    
+
     private async UniTask ReactionTimer(Agent otherAgent, float delay, CancellationToken cancellationToken)
     {
         await UniTask.WaitForSeconds(delay, cancellationToken: cancellationToken);
-        otherAgent.Eliminate(team);
+        otherAgent.Eliminate(_agent.Team);
     }
 }

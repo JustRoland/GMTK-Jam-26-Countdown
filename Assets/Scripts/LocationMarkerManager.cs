@@ -13,6 +13,7 @@ public class LocationMarkerManager : MonoBehaviour
     [Required]
     [SerializeField] private List<Transform> _flagTransforms = new(); 
     private readonly List<Flag> _flags = new(); 
+    private readonly Dictionary<Agent, Flag> _flagHolders = new();
 
     private void Awake()
     {
@@ -23,15 +24,21 @@ public class LocationMarkerManager : MonoBehaviour
         {
             _locationMarkers.Add(new LocationMarker(transform.GetChild(i)));
         }
-        
-        //Hardcoded flag assignment
-        _flags.Add(new Flag(Team.Player1, _flagTransforms[0]));
-        _flags.Add(new Flag(Team.Player2, _flagTransforms[1]));
+
+        _flagTransforms.ForEach(trnsf => _flags.Add(new Flag(trnsf.GetComponent<FlagObject>().team, trnsf.transform)));
+        // //Hardcoded flag assignment
+        // _flags.Add(new Flag(Team.Player1, _flagTransforms[0]));
+        // _flags.Add(new Flag(Team.Player2, _flagTransforms[1]));
     }
 
     public Transform RequestLocationMarker()
     {
         var filteredMarker = _locationMarkers.Where(lm => !lm.Reserved).ToList();
+        if (filteredMarker.Count == 0)
+        {
+            print("Not enough location markers");
+            return null;
+        }
         var rand = new Random();
         var marker = filteredMarker[rand.Next(filteredMarker.Count)];
         if (marker != null) marker.Reserved = true;
@@ -47,6 +54,27 @@ public class LocationMarkerManager : MonoBehaviour
     public Flag RequestFlag(Team team)
     {
         return _flags.Find(f => f.Team == team);
+    }
+
+    public void GrabFlag(Agent agent)
+    {
+        var flag = _flags.Find(f => f.Team != agent.Team);
+        flag.Taken = true;
+        flag.Transform.gameObject.SetActive(false);
+        _flagHolders.Add(agent, flag);
+    }
+    
+    public void ReturnFlag(Agent agent)
+    {
+        if (!_flagHolders.Remove(agent, out var flag)) return;
+        if (flag == null) return;
+        flag.Taken = false;
+        flag.Transform.gameObject.SetActive(true);
+    }
+
+    public bool CheckFlagHolder(Agent agent)
+    {
+        return _flagHolders.ContainsKey(agent);
     }
 }
 

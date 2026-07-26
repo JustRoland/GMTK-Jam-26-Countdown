@@ -94,7 +94,7 @@ public class FieldOfView : MonoBehaviour
             if (agent.ID != otherAgent.ID && agent.Team != otherAgent.Team)
             {
                 var ang = Vector3.Angle(agent.rotationPivotTransform.up, otherAgent.rotationPivotTransform.up);
-                if (ang < 180 - viewAngle / 2) continue;
+                if (ang < 180 - (viewAngle + 60) / 2) continue;
                 otherAgent.IsVisible.Value = true;
                 AgentInViewEvent.Invoke(otherAgent, true);
                 visibleTargets.Add(otherAgent);

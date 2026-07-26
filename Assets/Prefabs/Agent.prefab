@@ -833,6 +833,7 @@ GameObject:
   - component: {fileID: 5915366860230628403}
   - component: {fileID: 4346583522891757330}
   - component: {fileID: 4190791051465174715}
+  - component: {fileID: 6786076350765224769}
   m_Layer: 8
   m_Name: Agent
   m_TagString: Untagged
@@ -869,7 +870,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 4466481018561584349}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.4
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -895,7 +896,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Agent
   number: 0
-  team: 0
+  myTeam: 0
+  enemyTeam: 0
   numberText: {fileID: 3743197407414934021}
   fovVisual: {fileID: 1674250581250877200}
   lineRenderer: {fileID: 625488153903011968}
@@ -914,8 +916,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FieldOfView
   agent: {fileID: 5915366860230628403}
-  viewRadius: 8.05
-  viewAngle: 123
+  viewRadius: 4
+  viewAngle: 100
   searchDelay: 0.2
   targetMask:
     serializedVersion: 2
@@ -924,6 +926,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   visibleTargets: []
+  AgentInViewEvent:
+    m_PersistentCalls:
+      m_Calls: []
   meshResolution: 0.8
   meshFilter: {fileID: 587364149177897255}
 --- !u!58 &4190791051465174715
@@ -962,6 +967,33 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!50 &6786076350765224769
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4466481018561584349}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &4890318242931619334
 GameObject:
   m_ObjectHideFlags: 0
