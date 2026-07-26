@@ -65,9 +65,9 @@ public class Agent : MonoBehaviour
 
     private void Update()
     {
+        Arrived = _navAgent.velocity.sqrMagnitude < 0.001f && _navAgent.remainingDistance < 0.001f;
         UpdateRotation();
         UpdateLookTarget();
-        Arrived = _navAgent.pathStatus == NavMeshPathStatus.PathComplete && _navAgent.remainingDistance < 0.1f;
     }
 
     private void UpdateRotation()
@@ -98,12 +98,14 @@ public class Agent : MonoBehaviour
     public void SetAgentDestination(Team playerTeam, Vector3 destination)
     {
         if (playerTeam != Team) return;
+        Arrived = false;
         _navAgent.SetDestination(destination);
     }
 
-    public void SetAgentLookTarget(Team playerTeam, Vector3 target)
+    public void SetAgentLookTarget(Team playerTeam, Vector3 target, string targetName = null)
     {
         if (playerTeam != Team) return;
+        print($"Set {name} look target to {(targetName != null ? targetName:target)}");
         _lookTarget = target;
     }
 

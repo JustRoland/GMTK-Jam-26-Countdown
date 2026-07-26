@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Enemy : MonoBehaviour
 {
@@ -54,19 +55,20 @@ public class Enemy : MonoBehaviour
             if (marker)
             {
                 //Move to location
+                _agent.SetAgentLookTarget(_agent.Team, marker.position, marker.name);
                 _agent.SetAgentDestination(_agent.Team, marker.position);
-                _agent.SetAgentLookTarget(_agent.Team, marker.position);
-                await UniTask.WaitUntil(() => _agent.Arrived, cancellationToken: cancellationToken);
-
+                await UniTask.WaitForEndOfFrame(cancellationToken);
+                await UniTask.WaitUntil(() => _agent.Arrived, timing: PlayerLoopTiming.PostLateUpdate, cancellationToken: cancellationToken);
+                _agent.SetAgentLookTarget(_agent.Team,
+                    transform.position +
+                    new Vector3(
+                            LocationMarkerManager.Instance.RequestFlag(_agent.enemyTeam).Transform.position.x -
+                            transform.position.x, 0, 0)
+                        .normalized * 3, "Opponents");
             }
+            
 
             //Wait for next wander
-            _agent.SetAgentLookTarget(_agent.Team,
-                transform.position +
-                new Vector3(
-                        LocationMarkerManager.Instance.RequestFlag(_agent.enemyTeam).Transform.position.x -
-                        transform.position.x, 0, 0)
-                    .normalized * 3);
             var randomWander = UnityEngine.Random.Range(minWanderDelay, maxWanderDelay);
             await UniTask.WaitForSeconds(randomWander, cancellationToken: cancellationToken);
             if (marker) LocationMarkerManager.Instance.ReturnLocationMarker(marker); 

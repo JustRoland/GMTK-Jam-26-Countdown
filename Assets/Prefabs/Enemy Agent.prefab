@@ -105,8 +105,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4c2f0c1073aca246936bf770fa7a421, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  team: 2
-  otherTeam: 1
-  minWanderDelay: 3
-  maxWanderDelay: 8
+  minWanderDelay: 4
+  maxWanderDelay: 10
   reactionTime: 1.5
