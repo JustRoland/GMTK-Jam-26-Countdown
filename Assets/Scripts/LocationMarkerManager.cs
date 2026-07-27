@@ -26,9 +26,6 @@ public class LocationMarkerManager : MonoBehaviour
         }
 
         _flagTransforms.ForEach(trnsf => _flags.Add(new Flag(trnsf.GetComponent<FlagObject>().team, trnsf.transform)));
-        // //Hardcoded flag assignment
-        // _flags.Add(new Flag(Team.Player1, _flagTransforms[0]));
-        // _flags.Add(new Flag(Team.Player2, _flagTransforms[1]));
     }
 
     public Transform RequestLocationMarker()

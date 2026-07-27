@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     private void OnEnable()
     {        
         Timer.SetTimer(0, 2, 0);
-        _lostEvent = () => LoseGame(Team.Blue);
+        _lostEvent = () => LoseGame(Team.Red);
         Timer.CountdownFinishedEvent.AddListener(_lostEvent);
         Timer.StartTimer();
     }

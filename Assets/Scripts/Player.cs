@@ -49,10 +49,7 @@ public class Player : MonoBehaviour
 
     private void Hover()
     {
-        var ray = cam.ScreenPointToRay(_inputSystem.UI.Point.ReadValue<Vector2>());
-
-        var hit = Physics2D.GetRayIntersection(ray, 100, layerMask: layerMask);
-
+        var hit = ShootRayFromScreenPoint();
 
         if (hit && hit.transform.TryGetComponent(out Agent agent))
         {
@@ -69,9 +66,7 @@ public class Player : MonoBehaviour
 
     private void SelectAgent()
     {
-        var ray = cam.ScreenPointToRay(_inputSystem.UI.Point.ReadValue<Vector2>());
-
-        var hit = Physics2D.GetRayIntersection(ray, 100, layerMask: layerMask);
+        var hit = ShootRayFromScreenPoint();
 
         if (selectedAgent) selectedAgent.SelectedVisuals(false);
 
@@ -103,6 +98,12 @@ public class Player : MonoBehaviour
         selectedAgent.SetAgentDestination(Team, GetWorldPointFromScreenPoint());
     }
 
+    private RaycastHit2D ShootRayFromScreenPoint()
+    {
+        var ray = cam.ScreenPointToRay(_inputSystem.UI.Point.ReadValue<Vector2>());
+
+        return Physics2D.GetRayIntersection(ray, 100, layerMask: layerMask);
+    }
 
     private Vector3 GetWorldPointFromScreenPoint()
     {

@@ -9,6 +9,8 @@ using UnityEngine.Serialization;
 
 public class FieldOfView : MonoBehaviour
 {
+    // Courtesy of Sebastian Lague
+
     [SerializeField] private Agent agent;
 
     public float viewRadius;
@@ -24,8 +26,14 @@ public class FieldOfView : MonoBehaviour
     /// </summary>
     [HideInInspector] public List<Agent> visibleTargets = new();
 
-    private List<Agent> _visibleTargetsOld = new();
+    /// <summary>
+    /// This list is only used to reset Agents that are no longer visible.
+    /// </summary>
+    private readonly List<Agent> _visibleTargetsOld = new();
 
+    /// <summary>
+    /// When an Agent becomes visible or is no longer visible.
+    /// </summary>
     public UnityEvent<Agent, bool> AgentInViewEvent = new();
 
     [SerializeField] private float meshResolution;
@@ -64,7 +72,10 @@ public class FieldOfView : MonoBehaviour
         DrawFieldOfView();
     }
 
-    private async UniTask FindTargetsWithDelay(float delay, CancellationToken cancellationToken)
+    /// <summary>
+    /// Adds delay to targeting to avoid calling it every frame.
+    /// </summary>
+    private async UniTask FindTargetsWithDelay(float delay = 0.1f, CancellationToken cancellationToken = default)
     {
         while (cancellationToken.IsCancellationRequested == false)
         {

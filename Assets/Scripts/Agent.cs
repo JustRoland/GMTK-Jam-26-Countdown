@@ -58,7 +58,8 @@ public class Agent : MonoBehaviour
         SetAgentLookTarget(myTeam,
             transform.position +
             new Vector3(
-                    LocationMarkerManager.Instance.RequestFlag(enemyTeam).Transform.position.x - transform.position.x, 0, 0)
+                    LocationMarkerManager.Instance.RequestFlag(enemyTeam).Transform.position.x - transform.position.x,
+                    0, 0)
                 .normalized * 3);
     }
 
@@ -105,10 +106,14 @@ public class Agent : MonoBehaviour
     public void SetAgentLookTarget(Team playerTeam, Vector3 target, string targetName = null)
     {
         if (playerTeam != Team) return;
-        print($"Set {name} look target to {(targetName != null ? targetName:target)}");
+        print($"Set {name} look target to {(targetName != null ? targetName : target)}");
         _lookTarget = target;
     }
 
+    /// <summary>
+    /// Since agents are controlled by both Player and Enemy, this method decides how they react to being seen based on which team they are on.
+    /// </summary>
+    /// <param name="visible"></param>
     private void UpdateVisibility(bool visible)
     {
         switch (Team)
@@ -119,11 +124,9 @@ public class Agent : MonoBehaviour
             case Team.Blue:
                 numberText.color = visible ? Color.red : Color.white;
                 break;
-            case Team.None:
+            default:
                 print($"No Team assigned to {name}");
                 break;
-            default:
-                throw new ArgumentOutOfRangeException();
         }
     }
 

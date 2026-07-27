@@ -12,12 +12,12 @@ public class Enemy : MonoBehaviour
     private CancellationTokenSource _wanderToken;
     private CancellationTokenSource _reactionToken;
     private Agent _otherAgentCache;
-    
+
     [SerializeField] private float minWanderDelay;
     [SerializeField] private float maxWanderDelay;
     [SerializeField] private float reactionTime;
 
-
+    //TODO: Stop wander when opponent is in sight.
     public void Awake()
     {
         _agent = GetComponent<Agent>();
@@ -58,7 +58,8 @@ public class Enemy : MonoBehaviour
                 _agent.SetAgentLookTarget(_agent.Team, marker.position, marker.name);
                 _agent.SetAgentDestination(_agent.Team, marker.position);
                 await UniTask.WaitForEndOfFrame(cancellationToken);
-                await UniTask.WaitUntil(() => _agent.Arrived, timing: PlayerLoopTiming.PostLateUpdate, cancellationToken: cancellationToken);
+                await UniTask.WaitUntil(() => _agent.Arrived, timing: PlayerLoopTiming.PostLateUpdate,
+                    cancellationToken: cancellationToken);
                 _agent.SetAgentLookTarget(_agent.Team,
                     transform.position +
                     new Vector3(
@@ -66,17 +67,23 @@ public class Enemy : MonoBehaviour
                             transform.position.x, 0, 0)
                         .normalized * 3, "Opponents");
             }
-            
+
 
             //Wait for next wander
             var randomWander = UnityEngine.Random.Range(minWanderDelay, maxWanderDelay);
             await UniTask.WaitForSeconds(randomWander, cancellationToken: cancellationToken);
-            if (marker) LocationMarkerManager.Instance.ReturnLocationMarker(marker); 
-            
+            if (marker) LocationMarkerManager.Instance.ReturnLocationMarker(marker);
+
             //NOTE: Possible marker overlap if the marker gets returned, but no new marker is found. 
         }
     }
 
+    /// <summary>
+    /// When an agent enters or exits this agent's view, this script initiates or halts the elimination.
+    /// There can only be one agent in the reaction window, so one gets cached until eliminated or invisible.
+    /// </summary>
+    /// <param name="otherAgent">Agent entering/exiting view.</param>
+    /// <param name="isVisible">Whether Agent is currently visible or not.</param>
     private void OnAgentInView(Agent otherAgent, bool isVisible)
     {
         if (isVisible)
