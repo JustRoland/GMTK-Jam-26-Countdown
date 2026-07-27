@@ -103,10 +103,9 @@ public class Agent : MonoBehaviour
         _navAgent.SetDestination(destination);
     }
 
-    public void SetAgentLookTarget(Team playerTeam, Vector3 target, string targetName = null)
+    public void SetAgentLookTarget(Team playerTeam, Vector3 target)
     {
         if (playerTeam != Team) return;
-        print($"Set {name} look target to {(targetName != null ? targetName : target)}");
         _lookTarget = target;
     }
 

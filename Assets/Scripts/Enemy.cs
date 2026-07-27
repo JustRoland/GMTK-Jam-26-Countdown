@@ -55,7 +55,7 @@ public class Enemy : MonoBehaviour
             if (marker)
             {
                 //Move to location
-                _agent.SetAgentLookTarget(_agent.Team, marker.position, marker.name);
+                _agent.SetAgentLookTarget(_agent.Team, marker.position);
                 _agent.SetAgentDestination(_agent.Team, marker.position);
                 await UniTask.WaitForEndOfFrame(cancellationToken);
                 await UniTask.WaitUntil(() => _agent.Arrived, timing: PlayerLoopTiming.PostLateUpdate,
@@ -65,7 +65,7 @@ public class Enemy : MonoBehaviour
                     new Vector3(
                             LocationMarkerManager.Instance.RequestFlag(_agent.enemyTeam).Transform.position.x -
                             transform.position.x, 0, 0)
-                        .normalized * 3, "Opponents");
+                        .normalized * 3);
             }
 
 
