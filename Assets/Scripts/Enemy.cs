@@ -58,7 +58,7 @@ public class Enemy : MonoBehaviour
                 _agent.SetAgentLookTarget(_agent.Team, marker.position);
                 _agent.SetAgentDestination(_agent.Team, marker.position);
                 await UniTask.WaitForEndOfFrame(cancellationToken);
-                await UniTask.WaitUntil(() => _agent.Arrived, timing: PlayerLoopTiming.PostLateUpdate,
+                await UniTask.WaitUntil(() => _agent.HasArrived, timing: PlayerLoopTiming.PostLateUpdate,
                     cancellationToken: cancellationToken);
                 _agent.SetAgentLookTarget(_agent.Team,
                     transform.position +

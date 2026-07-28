@@ -870,7 +870,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 4466481018561584349}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.4
+  m_Radius: 0.3
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -903,6 +903,8 @@ MonoBehaviour:
   lineRenderer: {fileID: 625488153903011968}
   lookTargetTransform: {fileID: 8843014855761877937}
   rotationPivotTransform: {fileID: 8432148678953639771}
+  coverDistance: 0.6
+  coverAngle: 46
 --- !u!114 &4346583522891757330
 MonoBehaviour:
   m_ObjectHideFlags: 0

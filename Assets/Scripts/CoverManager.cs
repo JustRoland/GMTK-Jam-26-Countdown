@@ -23,20 +23,22 @@ public class CoverManager : MonoBehaviour
         _covers = FindObjectsByType<Collider2D>(sortMode: FindObjectsSortMode.None).Where(c => c.gameObject.layer == coverLayer).ToList();
     }
 
-    public Vector3? ReturnNearestCoverPosition(Vector2 point)
+    public (Vector3, float) ReturnNearestCoverPosition(Vector2 point, bool drawLine = false)
     {
         var distances = _covers.Select(c => Vector2.Distance(c.ClosestPoint(point), point)).ToList();
         var indexOfMin = distances.IndexOfMin();
         if (distances[indexOfMin] > maxSearchDistance)
         {
-            _lineRenderer.enabled = false;
-            return null;
+            if (drawLine) _lineRenderer.enabled = false;
+            return (Vector3.zero, 0f);
         }
         var closestPoint = _covers[indexOfMin].ClosestPoint(point);
-        _lineRenderer.enabled = true;
-        _lineRenderer.SetPosition(0, point);
-        _lineRenderer.SetPosition(1, closestPoint);
-        return closestPoint;
-
+        if (drawLine)
+        {
+            _lineRenderer.enabled = true;
+            _lineRenderer.SetPosition(0, point);
+            _lineRenderer.SetPosition(1, closestPoint);
+        }
+        return (closestPoint, distances[indexOfMin]);
     }
 }

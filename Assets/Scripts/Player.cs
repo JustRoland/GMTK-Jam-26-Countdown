@@ -51,7 +51,7 @@ public class Player : MonoBehaviour
     {
         var hit = ShootRayFromScreenPoint();
 
-        CoverManager.Instance.ReturnNearestCoverPosition(GetWorldPointFromScreenPoint());
+        CoverManager.Instance.ReturnNearestCoverPosition(GetWorldPointFromScreenPoint(), drawLine: true);
 
         if (hit && hit.transform.TryGetComponent(out Agent agent))
         {

@@ -18,6 +18,8 @@ public class Agent : MonoBehaviour
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Transform lookTargetTransform;
     public Transform rotationPivotTransform;
+    [SerializeField] private float coverDistance = 0.3f;
+    [SerializeField] private float coverAngle = 90;
 
     private NavMeshAgent _navAgent;
 
@@ -25,7 +27,8 @@ public class Agent : MonoBehaviour
 
 
     public readonly ObservableProperty<bool> IsVisible = new(false);
-    public bool Arrived { get; private set; }
+    public bool HasArrived { get; private set; }
+    public bool InCover { get; private set; }
     public Team Team => myTeam;
 
     public void Awake()
@@ -66,9 +69,10 @@ public class Agent : MonoBehaviour
 
     private void Update()
     {
-        Arrived = _navAgent.velocity.sqrMagnitude < 0.001f && _navAgent.remainingDistance < 0.001f;
-        UpdateRotation();
+        HasArrived = _navAgent.velocity.sqrMagnitude < 0.001f && _navAgent.remainingDistance < 0.001f;
         UpdateLookTarget();
+        UpdateRotation();
+        if (CoverManager.Instance) InCover = CheckForCover();
     }
 
     private void UpdateRotation()
@@ -90,6 +94,16 @@ public class Agent : MonoBehaviour
         lineRenderer.SetPosition(1, lookTargetTransform.localPosition);
     }
 
+    private bool CheckForCover()
+    {
+        //If facing a nearby obstacle, InCover = true;
+        var cover = CoverManager.Instance.ReturnNearestCoverPosition(transform.position);
+        if (cover.Item1 == Vector3.zero) return false;
+        if (Vector3.Distance(cover.Item1, transform.position) > coverDistance) return false;
+        if (cover.Item2 <= 0) return false;
+        return Vector3.Angle(rotationPivotTransform.up, cover.Item1 - transform.position) < coverAngle;
+    }
+
     public void Eliminate(Team eliminatedBy)
     {
         if (myTeam == eliminatedBy) return;
@@ -99,7 +113,7 @@ public class Agent : MonoBehaviour
     public void SetAgentDestination(Team playerTeam, Vector3 destination)
     {
         if (playerTeam != Team) return;
-        Arrived = false;
+        HasArrived = false;
         _navAgent.SetDestination(destination);
     }
 
@@ -115,6 +129,7 @@ public class Agent : MonoBehaviour
     /// <param name="visible"></param>
     private void UpdateVisibility(bool visible)
     {
+        if (InCover) return;
         switch (Team)
         {
             case Team.Red:
