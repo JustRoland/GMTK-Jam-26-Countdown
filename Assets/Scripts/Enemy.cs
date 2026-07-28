@@ -39,9 +39,9 @@ public class Enemy : MonoBehaviour
 
     private void OnDisable()
     {
-        _wanderToken?.Cancel();
+        if (_wanderToken is { IsCancellationRequested: false }) _wanderToken.Cancel();
         _wanderToken?.Dispose();
-        _reactionToken?.Cancel();
+        if (_reactionToken is { IsCancellationRequested: false }) _reactionToken.Cancel();
         _reactionToken?.Dispose();
         _fov.AgentInViewEvent.RemoveListener(OnAgentInView);
     }

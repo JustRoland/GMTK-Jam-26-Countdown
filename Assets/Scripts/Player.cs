@@ -11,8 +11,6 @@ public enum Team
 
 public class Player : MonoBehaviour
 {
-    public Team Team => team;
-    [Required]
     [SerializeField] private Team team;
 
     private InputSystem_Actions _inputSystem;
@@ -51,7 +49,12 @@ public class Player : MonoBehaviour
     {
         var hit = ShootRayFromScreenPoint();
 
-        CoverManager.Instance.ReturnNearestCoverPosition(GetWorldPointFromScreenPoint(), drawLine: true);
+        if (CoverManager.Instance)
+        {
+            if (selectedAgent)
+                CoverManager.Instance.ReturnNearestCoverPosition(GetWorldPointFromScreenPoint(), drawLine: true);
+            else CoverManager.Instance.EnableLineRenderer(false);
+        }
 
         if (hit && hit.transform.TryGetComponent(out Agent agent))
         {
@@ -70,34 +73,35 @@ public class Player : MonoBehaviour
     {
         var hit = ShootRayFromScreenPoint();
 
-        if (selectedAgent) selectedAgent.SelectedVisuals(false);
 
         if (!hit || !hit.transform.TryGetComponent(out Agent agent))
         {
+            if (selectedAgent) selectedAgent.SelectedVisuals(false);
             selectedAgent = null;
             return;
         }
 
-        if (agent.Team == Team)
+        if (agent.Team == team)
         {
+            if (selectedAgent) selectedAgent.SelectedVisuals(false);
             selectedAgent = agent;
             selectedAgent.SelectedVisuals(true);
         }
         else if (agent.IsVisible.Value)
         {
-            agent.Eliminate(Team);
+            agent.Eliminate(team);
         }
     }
 
     private void SetAgentLookTarget()
     {
-        selectedAgent?.SetAgentLookTarget(Team, GetWorldPointFromScreenPoint());
+        selectedAgent?.SetAgentLookTarget(team, GetWorldPointFromScreenPoint());
     }
 
     private void MoveSelectedAgent()
     {
         if (!selectedAgent) return;
-        selectedAgent.SetAgentDestination(Team, GetWorldPointFromScreenPoint());
+        selectedAgent.SetAgentDestination(team, GetWorldPointFromScreenPoint());
     }
 
     private RaycastHit2D ShootRayFromScreenPoint()

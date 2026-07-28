@@ -41,4 +41,9 @@ public class CoverManager : MonoBehaviour
         }
         return (closestPoint, distances[indexOfMin]);
     }
+
+    public void EnableLineRenderer(bool enable)
+    {
+        _lineRenderer.enabled = enable;
+    }
 }
