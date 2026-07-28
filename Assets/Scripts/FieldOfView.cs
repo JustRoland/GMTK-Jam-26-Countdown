@@ -34,7 +34,7 @@ public class FieldOfView : MonoBehaviour
     /// <summary>
     /// When an Agent becomes visible or is no longer visible.
     /// </summary>
-    public UnityEvent<Agent, bool> AgentInViewEvent = new();
+    public UnityEvent<Agent> AgentInViewEvent = new();
 
     [SerializeField] private float meshResolution;
     [SerializeField] private MeshFilter meshFilter;
@@ -59,7 +59,7 @@ public class FieldOfView : MonoBehaviour
         _targetingToken.Cancel();
         _targetingToken.Dispose();
         visibleTargets.ForEach(t => t.IsVisible.Value = false);
-        AgentInViewEvent.Invoke(agent, false);
+        AgentInViewEvent.Invoke(agent);
     }
 
     private void Start()
@@ -107,7 +107,7 @@ public class FieldOfView : MonoBehaviour
                 var ang = Vector3.Angle(agent.rotationPivotTransform.up, otherAgent.rotationPivotTransform.up);
                 if (ang < 180 - (viewAngle + 60) / 2) continue;
                 otherAgent.IsVisible.Value = true;
-                AgentInViewEvent.Invoke(otherAgent, true);
+                AgentInViewEvent.Invoke(otherAgent);
                 visibleTargets.Add(otherAgent);
             }
         }
@@ -115,7 +115,7 @@ public class FieldOfView : MonoBehaviour
         foreach (var target in _visibleTargetsOld.Where(target => !visibleTargets.Contains(target)))
         {
             target.IsVisible.Value = false;
-            AgentInViewEvent.Invoke(target, false);
+            AgentInViewEvent.Invoke(target);
         }
     }
 

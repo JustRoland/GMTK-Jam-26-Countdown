@@ -83,10 +83,9 @@ public class Enemy : MonoBehaviour
     /// There can only be one agent in the reaction window, so one gets cached until eliminated or invisible.
     /// </summary>
     /// <param name="otherAgent">Agent entering/exiting view.</param>
-    /// <param name="isVisible">Whether Agent is currently visible or not.</param>
-    private void OnAgentInView(Agent otherAgent, bool isVisible)
+    private void OnAgentInView(Agent otherAgent)
     {
-        if (isVisible)
+        if (otherAgent.IsVisible.Value && !otherAgent.InCover)
         {
             if (_otherAgentCache) return;
             _otherAgentCache = otherAgent;

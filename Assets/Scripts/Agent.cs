@@ -14,6 +14,8 @@ public class Agent : MonoBehaviour
     public Team myTeam;
     public Team enemyTeam;
     [SerializeField] private TextMeshPro numberText;
+    [SerializeField] private SpriteRenderer numberBackground;
+    private Color _normalBackgroundColor;
     [SerializeField] private GameObject fovVisual;
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Transform lookTargetTransform;
@@ -37,6 +39,7 @@ public class Agent : MonoBehaviour
         _navAgent.updateRotation = false;
         _navAgent.updateUpAxis = false;
 
+        _normalBackgroundColor = numberBackground.color;
         numberText.text = number.ToString();
         if (Team != Team.Blue) numberText.gameObject.SetActive(false);
         fovVisual.SetActive(false);
@@ -72,7 +75,11 @@ public class Agent : MonoBehaviour
         HasArrived = _navAgent.velocity.sqrMagnitude < 0.001f && _navAgent.remainingDistance < 0.001f;
         UpdateLookTarget();
         UpdateRotation();
-        if (CoverManager.Instance) InCover = CheckForCover();
+        if (CoverManager.Instance)
+        {
+            InCover = CheckForCover();
+            numberBackground.color = InCover ? Color.gray : _normalBackgroundColor;
+        }
     }
 
     private void UpdateRotation()
@@ -129,14 +136,13 @@ public class Agent : MonoBehaviour
     /// <param name="visible"></param>
     private void UpdateVisibility(bool visible)
     {
-        if (InCover) return;
         switch (Team)
         {
             case Team.Red:
-                numberText.gameObject.SetActive(visible);
+                numberText.gameObject.SetActive(visible && !InCover);
                 break;
             case Team.Blue:
-                numberText.color = visible ? Color.red : Color.white;
+                numberText.color = visible && !InCover ? Color.red : Color.white;
                 break;
             default:
                 print($"No Team assigned to {name}");

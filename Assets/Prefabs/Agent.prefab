@@ -899,6 +899,7 @@ MonoBehaviour:
   myTeam: 0
   enemyTeam: 0
   numberText: {fileID: 3743197407414934021}
+  numberBackground: {fileID: 3094514873116420014}
   fovVisual: {fileID: 1674250581250877200}
   lineRenderer: {fileID: 625488153903011968}
   lookTargetTransform: {fileID: 8843014855761877937}
